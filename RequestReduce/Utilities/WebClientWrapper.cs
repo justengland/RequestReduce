@@ -55,7 +55,12 @@ namespace RequestReduce.Utilities
         {
             try
             {
-                var client = WebRequest.Create(url);
+                var newUrl = "";
+                if (url.StartsWith("//"))
+                {
+                    newUrl = url.Replace("//", "http://");
+                }
+                var client = WebRequest.Create(newUrl);
                 client.Credentials = CredentialCache.DefaultCredentials;
                 if (RRContainer.Current.GetInstance<IRRConfiguration>().IsFullTrust || Environment.Version.Major >= 4) 
                     client.Proxy = proxy;

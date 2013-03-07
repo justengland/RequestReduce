@@ -30,7 +30,7 @@ namespace RequestReduce.Utilities
                 if (context.Request.Headers["X-Forwarded-For"] != null && !baseUrl.IsDefaultPort)
                     baseUrl = new System.UriBuilder(baseUrl.Scheme, baseUrl.Host) { Path = baseUrl.PathAndQuery }.Uri;
             }
-            return IsAbsolute(relativeUrl) ? relativeUrl : new Uri(baseUrl, relativeUrl).AbsoluteUri;
+            return (IsAbsolute(relativeUrl) ? relativeUrl : (new Uri(baseUrl, relativeUrl).AbsoluteUri)).Replace("http://", "//");
         }
 
         public string ToAbsolute(string baseUrl, string relativeUrl)
@@ -78,8 +78,13 @@ namespace RequestReduce.Utilities
 
         public string ToAbsolute(string baseUrl, string relativeUrl, bool useContentHost)
         {
-            var absolute = IsAbsolute(relativeUrl) ? relativeUrl : new Uri(new Uri(baseUrl), relativeUrl).AbsoluteUri;
-            return useContentHost ? ReplaceContentHost(absolute, baseUrl) : absolute;
+            var newUrl = "";
+            if (baseUrl.StartsWith("//"))
+            {
+                newUrl = baseUrl.Replace("//", "http://");
+            }
+            var absolute = IsAbsolute(relativeUrl) ? relativeUrl : new Uri(new Uri(newUrl), relativeUrl).AbsoluteUri;
+            return (useContentHost ? ReplaceContentHost(absolute, newUrl) : absolute).Replace("http://", "//");
         }
     }
 }

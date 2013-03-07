@@ -4,6 +4,7 @@ using RequestReduce.Api;
 using RequestReduce.Configuration;
 using RequestReduce.ResourceTypes;
 using RequestReduce.IOC;
+using System.Reflection;
 
 namespace RequestReduce.Utilities
 {
@@ -22,6 +23,25 @@ namespace RequestReduce.Utilities
     public class UriBuilder : IUriBuilder
     {
         private readonly IRRConfiguration configuration;
+
+        [ThreadStatic]
+        private static string version = null;
+
+        public static String Version
+        {
+            get
+            {
+                if (version == null)
+                {
+                    Assembly web = Assembly.GetExecutingAssembly();
+                    AssemblyName webName = web.GetName();
+
+                    return version = webName.Version.ToString();
+                }
+
+                return version;
+            }
+        }
 
         public UriBuilder(IRRConfiguration configuration)
         {
@@ -109,5 +129,6 @@ namespace RequestReduce.Utilities
                 return Guid.Empty.RemoveDashes();
             }
         }
+
     }
 }
