@@ -63,11 +63,19 @@ namespace RequestReduce.Utilities
 
         private static string GetHost(string url)
         {
-            var firstPos = url.IndexOf("//", StringComparison.Ordinal);
-            if (firstPos > -1)
-                firstPos += 2;
-            var idx = url.IndexOf('/', firstPos);
-            return url.Substring(0, idx);
+            if (String.IsNullOrWhiteSpace(url)) { throw new ArgumentNullException(); }
+            try
+            {
+                var firstPos = url.IndexOf("//", StringComparison.Ordinal);
+                if (firstPos > -1)
+                    firstPos += 2;
+                var idx = url.IndexOf('/', firstPos);
+                return url.Substring(0, idx);
+            }
+            catch (Exception e)
+            {
+                throw new InvalidCastException("GetHost: " + url, e);
+            }
         }
 
         private static bool IsAbsolute(string url)
@@ -78,13 +86,45 @@ namespace RequestReduce.Utilities
 
         public string ToAbsolute(string baseUrl, string relativeUrl, bool useContentHost)
         {
-            var newUrl = "";
-            if (baseUrl.StartsWith("//"))
+            try
             {
-                newUrl = baseUrl.Replace("//", "http://");
+                var newUrl = "";
+                if (baseUrl.StartsWith("//"))
+                {
+                    newUrl = baseUrl.Replace("//", "http://");
+                }
+
+                var newRelativeUrl = "";
+                if (relativeUrl.StartsWith("//"))
+                {
+                    newRelativeUrl = relativeUrl.Replace("//", "http://");
+                }
+
+                var absolute = "";
+                if (IsAbsolute(newRelativeUrl))
+                {
+                    absolute = newRelativeUrl;
+                }
+                else
+                {
+                    absolute = new Uri(new Uri(newUrl), newRelativeUrl).AbsoluteUri;
+                }
+               //  var absolute = IsAbsolute(newRelativeUrl) ? newRelativeUrl : new Uri(new Uri(newUrl), newRelativeUrl).AbsoluteUri;
+
+
+                var newAbsolute = "";
+                if (newAbsolute.StartsWith("//"))
+                {
+                    newAbsolute = newAbsolute.Replace("//", "http://");
+                }
+
+                return (useContentHost ? ReplaceContentHost(absolute, newUrl) : newAbsolute);
+
             }
-            var absolute = IsAbsolute(relativeUrl) ? relativeUrl : new Uri(new Uri(newUrl), relativeUrl).AbsoluteUri;
-            return (useContentHost ? ReplaceContentHost(absolute, newUrl) : absolute).Replace("http://", "//");
+            catch (Exception ex)
+            {
+                 throw new InvalidCastException(String.Format("ToAbsolute: {0} - {1}", baseUrl, relativeUrl));
+            }    
         }
     }
 }
